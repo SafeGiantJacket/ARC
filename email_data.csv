@@ -1,0 +1,21 @@
+email_id,subject,client_name,received_at,policy_id,summary,sentiment,thread_count,source_link
+EM-701,Request for Updated Proposal,Global Technologies,2025-01-13 9:08 AM,POL-9101,Client wants updated quote with revised salary bands,Neutral,6,https://outlook.office.com/mail/message/em701
+EM-702,Loss-Run Attachment Shared,Apex Enterprises,2025-01-20 2:47 PM,POL-9214,Loss-run sent to support underwriting discussion,Neutral,4,https://outlook.office.com/mail/message/em702
+EM-703,Concerns on Premium Increase,Omega Global,2025-01-15 10:04 AM,POL-9320,Client unhappy with projected premium hike and hinted potential switch,Negative,8,https://outlook.office.com/mail/message/em703   ← ❗ negative
+EM-704,Request for Pending Documents,Omega Global,2025-01-18 7:51 PM,POL-9320,Carrier waiting on audit certificates for pricing,Neutral,5,https://outlook.office.com/mail/message/em704
+EM-705,Renewal Calendar Confirmation,Apex Corporation,2025-01-09 5:30 PM,POL-9408,Client confirmed renewal dates and agenda items,Positive,3,https://outlook.office.com/mail/message/em705
+EM-706,Underwriter Follow-Up Required,Titan Solutions,2025-01-26 11:19 AM,POL-9554,Carrier asking for clarifications in claim documentation,Neutral,6,https://outlook.office.com/mail/message/em706
+EM-707,Positive Feedback on Service,Nexus Solutions,2025-01-10 8:55 AM,POL-9671,Client happy with broker support; renewal confidence high,Positive,2,https://outlook.office.com/mail/message/em707
+EM-708,Proposal Acknowledged,Phoenix Holdings,2025-01-28 4:11 PM,POL-9735,Client acknowledged premium proposal but awaiting internal review,Neutral,5,https://outlook.office.com/mail/message/em708
+EM-709,Documents Submitted,Phoenix Holdings,2025-02-03 6:14 PM,POL-9735,Valuation reports uploaded to data room for underwriting,Positive,7,https://outlook.office.com/mail/message/em709
+EM-710,Appreciation Email,Sterling Industries,2025-01-05 9:41 AM,POL-9822,Client expressed satisfaction with renewal efficiency,Positive,3,https://outlook.office.com/mail/message/em710
+EM-711,Add-On Coverage Inquiry,Phoenix Associates,2025-01-22 4:33 PM,POL-9880,Client interested in increasing property damage limit,Positive,6,https://outlook.office.com/mail/message/em711
+EM-712,Cost Benchmarking Request,Apex Ventures,2025-01-25 12:14 PM,POL-10012,Client requested comparisons versus market averages,Neutral,4,https://outlook.office.com/mail/message/em712
+EM-713,Carrier Clarification on Open Claim,Horizon Enterprises,2025-01-13 3:09 PM,POL-10104,Carrier wants invoice itemization before renewal,Neutral,11,https://outlook.office.com/mail/message/em713
+EM-714,Multi-Year Renewal Discussion,Summit Solutions,2025-01-23 2:58 PM,POL-10229,Carrier open to 2-year lock-in at improved risk score,Positive,5,https://outlook.office.com/mail/message/em714
+EM-715,Quote Comparison Feedback,Sterling Partners,2025-01-30 6:21 PM,POL-10365,Client leaning toward switching carriers unless price improves,Negative,9,https://outlook.office.com/mail/message/em715   ← ❗ negative
+EM-716,Request for Final Proposal,Premier Group,2025-02-02 11:40 AM,POL-10409,Client wants side-by-side proposal charts before board meeting,Neutral,7,https://outlook.office.com/mail/message/em716
+EM-717,Attach Cyber Coverage Proposal,Titan Corporation,2025-02-04 1:54 PM,POL-10497,Client evaluating cyber and D&O cover; needs joint comparison,Neutral,8,https://outlook.office.com/mail/message/em717
+EM-718,Risk Heat-map Document Upload,Vertex Systems,2025-02-06 3:37 PM,POL-10580,Client sent risk assessment visuals for underwriting,Positive,4,https://outlook.office.com/mail/message/em718
+EM-719,Pending COI Renewals,Zenith Partners,2025-01-11 8:02 AM,POL-10641,Client raised urgency about COI delays impacting vendor contracts,Urgent,10,https://outlook.office.com/mail/message/em719
+EM-720,Consolidated Renewal Request,Summit Capital,2025-01-31 10:51 AM,POL-10699,Client wants unified billing cycle for 3 policies,Neutral,6,https://outlook.office.com/mail/message/em720

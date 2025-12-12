@@ -1,0 +1,146 @@
+{
+  "abi": [
+    {
+      "type": "constructor",
+      "inputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "broker",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "allPolicyHashes",
+      "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+      "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "customerPolicyHashes",
+      "inputs": [
+        { "name": "", "type": "address", "internalType": "address" },
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "createPolicy",
+      "inputs": [
+        { "name": "_policyName", "type": "string", "internalType": "string" },
+        { "name": "_policyType", "type": "string", "internalType": "string" },
+        { "name": "_coverageAmount", "type": "uint256", "internalType": "uint256" },
+        { "name": "_premium", "type": "uint256", "internalType": "uint256" },
+        { "name": "_durationInDays", "type": "uint256", "internalType": "uint256" },
+        { "name": "_notes", "type": "string", "internalType": "string" },
+        { "name": "_customer", "type": "address", "internalType": "address" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "signPolicy",
+      "inputs": [{ "name": "_hash", "type": "bytes32", "internalType": "bytes32" }],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "renew",
+      "inputs": [
+        { "name": "_hash", "type": "bytes32", "internalType": "bytes32" },
+        { "name": "_additionalDays", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "getActivePolicies",
+      "inputs": [{ "name": "_customer", "type": "address", "internalType": "address" }],
+      "outputs": [{ "name": "", "type": "bytes32[]", "internalType": "bytes32[]" }],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "getPolicy",
+      "inputs": [{ "name": "_hash", "type": "bytes32", "internalType": "bytes32" }],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct BrokerPolicySystem.Policy",
+          "components": [
+            { "name": "policyHash", "type": "bytes32", "internalType": "bytes32" },
+            { "name": "policyName", "type": "string", "internalType": "string" },
+            { "name": "policyType", "type": "string", "internalType": "string" },
+            { "name": "coverageAmount", "type": "uint256", "internalType": "uint256" },
+            { "name": "premium", "type": "uint256", "internalType": "uint256" },
+            { "name": "startTime", "type": "uint256", "internalType": "uint256" },
+            { "name": "duration", "type": "uint256", "internalType": "uint256" },
+            { "name": "renewalCount", "type": "uint256", "internalType": "uint256" },
+            { "name": "notes", "type": "string", "internalType": "string" },
+            { "name": "status", "type": "uint8", "internalType": "enum BrokerPolicySystem.PolicyStatus" },
+            { "name": "customer", "type": "address", "internalType": "address" }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "policies",
+      "inputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+      "outputs": [
+        { "name": "policyHash", "type": "bytes32", "internalType": "bytes32" },
+        { "name": "policyName", "type": "string", "internalType": "string" },
+        { "name": "policyType", "type": "string", "internalType": "string" },
+        { "name": "coverageAmount", "type": "uint256", "internalType": "uint256" },
+        { "name": "premium", "type": "uint256", "internalType": "uint256" },
+        { "name": "startTime", "type": "uint256", "internalType": "uint256" },
+        { "name": "duration", "type": "uint256", "internalType": "uint256" },
+        { "name": "renewalCount", "type": "uint256", "internalType": "uint256" },
+        { "name": "notes", "type": "string", "internalType": "string" },
+        { "name": "status", "type": "uint8", "internalType": "enum BrokerPolicySystem.PolicyStatus" },
+        { "name": "customer", "type": "address", "internalType": "address" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "event",
+      "name": "PolicyCreated",
+      "inputs": [
+        { "name": "hash", "type": "bytes32", "indexed": true, "internalType": "bytes32" },
+        { "name": "customer", "type": "address", "indexed": true, "internalType": "address" }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "PolicySigned",
+      "inputs": [
+        { "name": "hash", "type": "bytes32", "indexed": true, "internalType": "bytes32" },
+        { "name": "customer", "type": "address", "indexed": true, "internalType": "address" }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "PolicyExpired",
+      "inputs": [{ "name": "hash", "type": "bytes32", "indexed": true, "internalType": "bytes32" }]
+    },
+    {
+      "type": "event",
+      "name": "PolicyRenewed",
+      "inputs": [
+        { "name": "hash", "type": "bytes32", "indexed": true, "internalType": "bytes32" },
+        { "name": "renewalCount", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      ]
+    }
+  ]
+}
