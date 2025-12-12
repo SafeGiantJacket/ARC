@@ -15,24 +15,24 @@ P2 leverages a cutting-edge **Decentralized Application (DApp)** architecture fu
 ```mermaid
 graph TD
     subgraph "On-Chain (Layer 1)"
-        Contract[Smart Contract (Solidity)]
-        State[Global Ledger State]
+        Contract["Smart Contract (Solidity)"]
+        State["Global Ledger State"]
     end
 
     subgraph "Collaboration Layer (Web2)"
-        Cal[Google Calendar 2-Way Sync]
-        Teams[Teams Webhook]
+        Cal["Google Calendar 2-Way Sync"]
+        Teams["Teams Webhook"]
     end
 
     subgraph "Application Layer"
-        UI[Next.js Dashboard]
-        Logic[Scoring Engine]
+        UI["Next.js Dashboard"]
+        Logic["Scoring Engine"]
     end
 
     Contract --> |Events| UI
     UI <--> |Read/Write| Cal
     UI --> |Notify| Teams
-    User[MetaMask] --> |Sign| Contract
+    User["MetaMask"] --> |Sign| Contract
 ```
 
 ---
