@@ -17,21 +17,21 @@ The system follows a **Connector-First, Logic-Centralized** architecture.
 ```mermaid
 graph TD
     subgraph "Live Signal Layer (Connectors)"
-        Mail[Communication Miner (Gmail/Outlook)]
-        Cal[Collaboration (Calendar/Teams)]
-        Chain[Blockchain (Sepolia Testnet)]
+        Mail["Communication Miner (Gmail/Outlook)"]
+        Cal["Collaboration (Calendar/Teams)"]
+        Chain["Blockchain (Sepolia Testnet)"]
     end
 
     subgraph "Intelligent Core (Client-Side)"
-        Parser[Fault-Tolerant Ingester]
-        Engine[Prioritization Engine]
-        Sync[State Synchronizer]
+        Parser["Fault-Tolerant Ingester"]
+        Engine["Prioritization Engine"]
+        Sync["State Synchronizer"]
     end
 
     subgraph "Operational Interface"
-        Dash[Renewal Dashboard]
-        Coach[Negotiation Coach]
-        Scheduler[Unified Scheduler]
+        Dash["Renewal Dashboard"]
+        Coach["Negotiation Coach"]
+        Scheduler["Unified Scheduler"]
     end
 
     Mail & Cal & Chain --> |Raw Streams| Parser
