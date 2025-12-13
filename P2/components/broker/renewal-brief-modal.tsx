@@ -321,7 +321,7 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
           {loading && (
             <div className="text-center py-12">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-              <p className="text-muted-foreground">Analyzing data and generating brief with Groq AI...</p>
+              <p className="text-muted-foreground">Analyzing data and generating brief with Advanced AI...</p>
               <p className="text-xs text-muted-foreground mt-2">This may take a few seconds...</p>
             </div>
           )}

@@ -85,7 +85,8 @@ Rules:
 3. **Tone**: Professional, strategic, and action-oriented.
 4. **Data Usage**: Explicitly reference data points (e.g., 'Client expressed concern about pricing in email dated...').
 5. **No Hallucinations**: Use only the provided data.
-6. **Format**: Return ONLY valid, minified JSON. Do not include markdown formatting or explanations.`
+6. **Format**: Return ONLY valid, minified JSON. Do not include markdown formatting or explanations.
+7. **White Label**: Strictly do NOT mention 'Groq', 'Llama', 'AI', or the model name in the output.`
 
     const prompt = `
 ${dataSection}${connectorSection}
@@ -118,7 +119,7 @@ Generate a JSON response with this exact structure:
 }
 `
 
-    console.log("[v0] Calling Groq API (generateText) for enhanced brief...")
+    console.log("[v0] Calling AI API (generateText) for enhanced brief...")
 
     const { text } = await generateText({
       model: groq(GROQ_MODEL),
@@ -127,7 +128,7 @@ Generate a JSON response with this exact structure:
       temperature: 0.5, // Lower temperature for more consistent JSON
     })
 
-    console.log("[v0] Groq response received")
+    console.log("[v0] AI response received")
 
     // Robust JSON cleaning
     let jsonText = text.trim()

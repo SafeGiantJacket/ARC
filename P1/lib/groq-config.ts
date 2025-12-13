@@ -1,6 +1,6 @@
 // This file should only be imported in server-side code (API routes)
 
-export const GROQ_API_KEY = "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"
+export const GROQ_API_KEY = ""
 
 export const GROQ_MODEL = "llama-3.3-70b-versatile"
 
