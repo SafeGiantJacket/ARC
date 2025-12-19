@@ -143,6 +143,38 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const getPolicyDates = () => {
+    if (item.placement) {
+      return {
+        effective: item.placement.placementEffectiveDate || "N/A",
+        expiry: item.placement.placementExpiryDate || "N/A",
+        duration: item.placement.daysUntilExpiry ? `${item.placement.daysUntilExpiry} days remaining` : "N/A"
+      }
+    }
+    if (item.policy) {
+      const startTime = Number(item.policy.startTime)
+      const duration = Number(item.policy.duration)
+      const durationDays = Math.ceil(duration / 86400)
+
+      if (startTime === 0) {
+        return {
+          effective: "Pending Activation (Starts upon signature)",
+          expiry: `Calculated from start date (+${durationDays} days)`,
+          duration: `${durationDays} Days`
+        }
+      }
+
+      const startDate = new Date(startTime * 1000)
+      const endDate = new Date((startTime + duration) * 1000)
+      return {
+        effective: startDate.toLocaleDateString(),
+        expiry: endDate.toLocaleDateString(),
+        duration: `${durationDays} Days`
+      }
+    }
+    return { effective: "Unknown", expiry: "Unknown", duration: "Unknown" }
+  }
+
   const handleSendMessage = async () => {
     if (!chatInput.trim() || !brief) return
 
@@ -150,6 +182,8 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
     setChatMessages((prev) => [...prev, { role: "user", content: userMessage }])
     setChatInput("")
     setChatLoading(true)
+
+    const dates = getPolicyDates()
 
     try {
       const response = await fetch("/api/negotiate-chat", {
@@ -162,6 +196,9 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
             premium: getPremium(),
             summary: brief.summary,
             risks: brief.riskFactors,
+            effectiveDate: dates.effective,
+            expiryDate: dates.expiry,
+            duration: dates.duration
           },
         }),
       })

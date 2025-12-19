@@ -19,6 +19,9 @@ export async function POST(request: Request) {
     CONTEXT:
     Policy/Client: ${context.policyName || "Unknown"}
     Current Premium: ${context.premium || "Unknown"}
+    Effective Date: ${context.effectiveDate || "Unknown"}
+    Expiry Date: ${context.expiryDate || "Unknown"}
+    Duration: ${context.duration || "Unknown"}
     Renewal Brief Summary: ${context.summary || "N/A"}
     Key Risks: ${context.risks?.join(", ") || "None"}
     ` : ""

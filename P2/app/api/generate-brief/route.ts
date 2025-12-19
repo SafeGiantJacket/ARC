@@ -87,7 +87,12 @@ Rules:
 5. **Data Usage**: Explicitly reference data points.
 6. **No Hallucinations**: Use only the provided data.
 7. **White Label**: Strictly do NOT mention 'Groq', 'Llama', 'AI', or the model name in the output.
-8. **JSON ONLY**: Your output must be PURE JSON. Do not wrap it in markdown block (like \`\`\`json). Do not add any text before or after.`
+8. **JSON ONLY**: Your output must be PURE VALID JSON.
+   - DO NOT use markdown code blocks (no \`\`\`json).
+   - DO NOT include comments (// or /*).
+   - DO NOT include trailing commas.
+   - Escape all double quotes within strings (e.g. \\").
+   - Ensure all keys are double-quoted.`
 
     const prompt = `
 ${dataSection}${connectorSection}
@@ -121,7 +126,7 @@ Generate a JSON response with this exact structure:
       "objectionHandlers": [
          {"objection": "Likely objection 1", "response": "Suggested response script"},
          {"objection": "Likely objection 2", "response": "Suggested response script"}
-      ],
+      ], // Ensure each handler object is properly closed with }
       "closing": "One sentence closing statement to secure the renewal"
     },
     "counterArguments": ["Argument 1", "Argument 2"],
@@ -136,7 +141,7 @@ Generate a JSON response with this exact structure:
       model: groq(GROQ_MODEL),
       system: systemPrompt,
       prompt: prompt,
-      temperature: 0.5,
+      temperature: 0.2, // Lower temperature to improve structural consistency
     })
 
     console.log("[v0] AI response received")
@@ -167,9 +172,20 @@ Generate a JSON response with this exact structure:
 
       // 3. Simple repair attempts for common LLM errors
       try {
-        // Sometimes they use newlines in strings which is invalid JSON
-        const escapedNewlines = jsonString.replace(/\n/g, "\\n");
-        briefData = JSON.parse(escapedNewlines);
+        // Fix 1: Handle escaped newlines
+        let repairedJson = jsonString.replace(/\n/g, "\\n");
+        // Fix 2: Remove trailing commas
+        repairedJson = repairedJson.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+
+        // Fix 3: Handle missing closing brace in objectionHandlers specifically (observed error)
+        // Looks for "response": "..." ] and converts to "response": "..." } ]
+        // Uses regex that respects escaped quotes
+        repairedJson = repairedJson.replace(
+          /("response"\s*:\s*"(?:[^"\\]|\\.)*")\s*]/g,
+          '$1}]'
+        );
+
+        briefData = JSON.parse(repairedJson);
       } catch (e2) {
         throw new Error("Failed to parse AI response as JSON");
       }

@@ -173,7 +173,8 @@ export function RenewalPipeline({
           // Calculate days until expiry
           let daysUntilExpiry: number
           if (startTimeSeconds === 0) {
-            // Policy not yet activated - use duration as days remaining
+            // Policy not yet activated - user requests calculation "from today"
+            // So we assume if started today, it has full duration remaining
             daysUntilExpiry = durationDays
           } else {
             // Policy is active - calculate from expiry
@@ -531,9 +532,11 @@ export function RenewalPipeline({
                       <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
-                          {item.daysUntilExpiry <= 0
-                            ? "Expired"
-                            : `${Math.ceil(item.daysUntilExpiry > 86400 ? item.daysUntilExpiry / 86400 : item.daysUntilExpiry)} days`}
+                          {Number(item.policy?.startTime) === 0
+                            ? `${Math.ceil(item.daysUntilExpiry)} Days (Pending)`
+                            : item.daysUntilExpiry <= 0
+                              ? "Expired"
+                              : `${Math.ceil(item.daysUntilExpiry > 86400 ? item.daysUntilExpiry / 86400 : item.daysUntilExpiry)} days`}
                         </span>
                         <span className="flex items-center gap-1">
                           {item.factors.premiumAtRisk.toFixed(4)} ETH
@@ -614,6 +617,24 @@ export function RenewalPipeline({
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Renewal Count</span>
                                 <span>{Number(item.policy.renewalCount)}</span>
+                              </div>
+                              <div className="flex justify-between border-t border-border/50 pt-2 mt-2">
+                                <span className="text-muted-foreground">Effective Date</span>
+                                <span className="font-medium text-muted-foreground">
+                                  {Number(item.policy.startTime) === 0
+                                    ? "Not Started (Est. Today)"
+                                    : new Date(Number(item.policy.startTime) * 1000).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Expiry Date</span>
+                                <span className="font-medium">
+                                  {Number(item.policy.startTime) === 0
+                                    ? `Est. ${new Date(Date.now() + Number(item.policy.duration) * 1000).toLocaleDateString()}`
+                                    : new Date(
+                                      (Number(item.policy.startTime) + Number(item.policy.duration)) * 1000,
+                                    ).toLocaleDateString()}
+                                </span>
                               </div>
                             </>
                           )}

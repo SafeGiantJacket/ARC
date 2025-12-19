@@ -108,20 +108,43 @@ export function QAChatbot({
     setIsLoading(true)
 
     try {
-      const serializedPolicies = policies.map((p) => ({
-        policyHash: String(p.policyHash || ""),
-        policyName: String(p.policyName || ""),
-        policyType: String(p.policyType || ""),
-        coverageAmount: String(Number(p.coverageAmount || 0) / 1e18),
-        premium: String(Number(p.premium || 0) / 1e18),
-        status: Number(p.status || 0),
-        customer: String(p.customer || ""),
-        renewalCount: Number(p.renewalCount || 0),
-        daysUntilExpiry:
-          p.startTime && p.duration
-            ? Math.ceil((Number(p.startTime) + Number(p.duration) - Math.floor(Date.now() / 1000)) / 86400)
-            : 0,
-      }))
+      const serializedPolicies = policies.map((p) => {
+        const startTime = Number(p.startTime || 0)
+        const duration = Number(p.duration || 0)
+        const durationDays = Math.ceil(duration / 86400)
+        const nowSeconds = Math.floor(Date.now() / 1000)
+
+        // Calculate days until expiry logic consistent with pipeline
+        let daysUntilExpiry = 0
+        let effectiveDate = "Pending"
+        let expiryDate = "Pending"
+
+        if (startTime === 0) {
+          daysUntilExpiry = durationDays
+          effectiveDate = "Pending Signature (Est. Today)"
+          expiryDate = `Est. ${new Date(Date.now() + duration * 1000).toLocaleDateString()}`
+        } else {
+          const expirySeconds = startTime + duration
+          daysUntilExpiry = Math.ceil((expirySeconds - nowSeconds) / 86400)
+          effectiveDate = new Date(startTime * 1000).toLocaleDateString()
+          expiryDate = new Date(expirySeconds * 1000).toLocaleDateString()
+        }
+
+        return {
+          policyHash: String(p.policyHash || ""),
+          policyName: String(p.policyName || ""),
+          policyType: String(p.policyType || ""),
+          coverageAmount: String(Number(p.coverageAmount || 0) / 1e18),
+          premium: String(Number(p.premium || 0) / 1e18),
+          status: Number(p.status || 0),
+          customer: String(p.customer || ""),
+          renewalCount: Number(p.renewalCount || 0),
+          daysUntilExpiry,
+          effectiveDate,
+          expiryDate,
+          duration: `${durationDays} Days`
+        }
+      })
 
       const response = await fetch("/api/qa-chat", {
         method: "POST",

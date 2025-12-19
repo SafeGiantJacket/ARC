@@ -55,27 +55,21 @@ ${placements
           .join("\n\n")}`
     } else if (Array.isArray(policies) && policies.length > 0) {
       // Blockchain mode - safely handle BigInt conversion
-      dataContext = `BLOCKCHAIN POLICIES (Note: Duration is stored in seconds on-chain, converted to days below):
+      dataContext = `BLOCKCHAIN POLICIES:
 ${policies
           .slice(0, 20)
           .map((p: any) => {
             const coverage = String(p?.coverageAmount || "0")
             const premium = String(p?.premium || "0")
-            const durationSeconds = Number(p?.duration || 0)
-            const durationDays = Math.floor(durationSeconds / 86400) // Convert seconds to days
-            const startTime = Number(p?.startTime || 0)
-            const expiryTimestamp = startTime > 0 ? startTime + durationSeconds : 0
-            const expiryDate = expiryTimestamp > 0 ? new Date(expiryTimestamp * 1000).toLocaleDateString() : "N/A"
-            const now = Math.floor(Date.now() / 1000)
-            const daysUntilExpiry = startTime > 0 ? Math.max(0, Math.ceil((expiryTimestamp - now) / 86400)) : "N/A"
 
             return `- Policy: ${String(p?.policyName || "Unknown")} (${String(p?.policyHash || "").slice(0, 10)}...)
    Type: ${String(p?.policyType || "Unknown")}
    Coverage: ${coverage} ETH
    Premium: ${premium} ETH
-   Duration: ${durationDays} days
-   Expiry Date: ${expiryDate}
-   Days Until Expiry: ${daysUntilExpiry}
+   Duration: ${String(p?.duration || "Unknown")}
+   Effective Date: ${String(p?.effectiveDate || "N/A")}
+   Expiry Date: ${String(p?.expiryDate || "N/A")}
+   Days Until Expiry: ${p?.daysUntilExpiry ?? "Unknown"}
    Status: ${Number(p?.status || 0) === 0 ? "Pending" : Number(p?.status) === 1 ? "Active" : "Expired"}
    Customer: ${String(p?.customer || "Unknown")}
    Renewals: ${Number(p?.renewalCount || 0)}`
