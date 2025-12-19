@@ -27,11 +27,15 @@ graph TD
     subgraph "Application Layer"
         UI["Next.js Dashboard"]
         Logic["Scoring Engine"]
+        Sim["Negotiation Simulator"]
+        Camp["Campaign Manager"]
     end
 
     Contract --> |Events| UI
     UI <--> |Read/Write| Cal
     UI --> |Notify| Teams
+    Logic --> |Context| Sim
+    Logic --> |Targets| Camp
     User["MetaMask"] --> |Sign| Contract
 ```
 
@@ -52,9 +56,12 @@ While the record is on-chain, productivity happens in the tools Brokers use dail
 *   **Google Calendar Two-Way Sync**:
     *   *Implementation*: `app/api/calendar/create` & `sync`.
     *   *Function*: Auto-Generated schedules in the DApp are **pushed** to the broker's real Google Calendar.
-*   **Microsoft Teams Integration**:
-    *   *Implementation*: `ShareToTeamsModal.tsx`.
-    *   *Function*: Instantly posts Renewal Briefs to channel webhooks for underwriter visibility.
+*   **Relationship Intelligence**:
+    *   *Implementation*: `connector-graph.tsx` & `relationship-timeline.tsx`.
+    *   *Function*: Visualizes the "Social Proof" of a policy holder, aggregating off-chain communications (Email/Teams) alongside on-chain transactions.
+*   **Campaign Automation**:
+    *   *Implementation*: `app/api/generate-campaign-email`.
+    *   *Function*: Auto-generates personalized renewal outreach for batches of smart contracts expiring within 60 days.
 
 ---
 

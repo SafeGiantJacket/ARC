@@ -55,6 +55,12 @@ const calculateUrgency = (daysRemaining: number): number => {
 }
 ```
 
+### 3. Intelligence Amplification
+Even though data originates from static CSVs, it is hydrated into the live **Relationship Intelligence Suite**:
+*   **Campaign Manager**: Normalized renewal dates trigger automated outreach drafts.
+*   **Negotiation Simulator**: "Whale" clients (high premium) automatically generate "Hard Renewal" practice scenarios.
+*   **Connector Graph**: CSV email columns are parsed to build visual relationship networks, even without live Gmail syncing.
+
 ---
 
 ## 🛠️ Setup Instructions (P1 Specific)

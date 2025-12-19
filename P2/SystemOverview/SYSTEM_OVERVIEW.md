@@ -105,6 +105,27 @@ Real-time event monitoring from Sepolia testnet:
 - CSV parsing
 - Dummy policy examples
 
+### 8. **Negotiation Simulator** (`components/broker/negotiation-simulator.tsx`)
+**AI-Driven Roleplay Module:**
+- Simulates distinct negotiation personas (e.g., "Cost-Cutter", "Relationship-Focused")
+- **Real-time Scoring**: Feedback on tone, clarity, and leverage usage
+- **Chat Interface**: Interactive dialogue with streaming AI responses
+- **Scenario Library**: Pre-loaded contexts (Renewal, Claims Dispute, Upsell)
+
+### 9. **Campaign Manager** (`components/broker/pipeline-campaign-manager.tsx`)
+**Bulk Outreach Automation:**
+- **Smart Targeting**: Filters policies expiring in 30/60/90 days
+- **AI Drafting**: Generates personalized emails referencing claims history and tenure
+- **Batch Processing**: Review and approve multiple drafts simultaneously
+- **Traceability**: Links generated emails to source policy data
+
+### 10. **Relationship Intelligence Suite**
+**Holistic Client View:**
+- **Connector Graph** (`connector-graph.tsx`): Visualizes network strength and frequency of interaction
+- **Relationship Timeline** (`relationship-timeline.tsx`): Chronological view of emails, meetings, and transactions
+- **Meeting Prep Widget** (`meeting-prep-widget.tsx`): "One-glance" context fabric for upcoming calls
+- **Ask My Data** (`ask-my-data-fab.tsx`): Natural language interface to query system data
+
 ## 🔗 Complete Data Flow
 
 \`\`\`
@@ -226,6 +247,23 @@ contract.renew(policyHash, renewalDays)
 4. "PolicyRenewed" event appears in Activity log
 5. Policy duration extends
 
+### AI Negotiation Practice
+1. Broker selects "Negotiation Simulator" from Floating Action Button (FAB)
+2. Chooses scenario: "High Value Renewal - Aggressive Client"
+3. Types opening argument in chat
+4. AI (Persona) responds with counter-argument
+5. Real-time feedback appears (Sentiment: Neutral, Clarity: High)
+6. Broker refines pitch based on AI coaching
+
+### Campaign Generation
+1. Broker opens "Renewal Pipeline"
+2. Selects "Campaign Manager" mode
+3. Filters for "Expiry < 60 Days"
+4. Clicks "Generate Campaign"
+5. System generates 10 unique emails referencing specific claims/tenure
+6. Broker reviews and clicks "Send All"
+7. Emails logged in Relationship Timeline
+
 ## 📱 Responsive Design
 
 - ✅ Mobile-first layout
@@ -263,7 +301,11 @@ Broker Flow
     ├── EmailOutreach (manual tracking)
     ├── QAChatbot (Groq AI)
     ├── EmailSummary (sentiment analysis)
-    └── RenewalPipeline (CRM view)
+    ├── RenewalPipeline (CRM view)
+    ├── NegotiationSimulator (AI roleplay)
+    ├── PipelineCampaignManager (Bulk email)
+    ├── RelationshipTimeline (History)
+    └── AskMyDataFAB (Global QA)
 
 Customer Flow
 ├── user-dashboard.tsx

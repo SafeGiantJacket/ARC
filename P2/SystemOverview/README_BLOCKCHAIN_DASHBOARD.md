@@ -170,6 +170,8 @@ All blockchain operations are visible and auditable:
 - **Q&A Module**: Groq AI answers questions about policies
 - **Calendar AI**: Smart scheduling based on renewal urgency
 - **Sentiment Analysis**: Email communication insights
+- **Negotiation Simulator**: Roleplay complex renewals with specific client personas
+- **Campaign Manager**: Auto-generate personalized outreach for segregated pipelines
 
 ## Workflow Examples
 
