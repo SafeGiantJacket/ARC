@@ -56,6 +56,8 @@ const DEFAULT_WEIGHTS: PriorityWeights = {
   claimsHistory: 0.1,
   carrierResponsiveness: 0.15,
   churnLikelihood: 0.1,
+  marketConditions: 0,
+  interactionHealth: 0,
 }
 
 const WEIGHT_LABELS: Record<keyof PriorityWeights, string> = {
@@ -64,6 +66,8 @@ const WEIGHT_LABELS: Record<keyof PriorityWeights, string> = {
   claimsHistory: "Claims History",
   carrierResponsiveness: "Carrier Response",
   churnLikelihood: "Churn Risk",
+  marketConditions: "Market Conditions",
+  interactionHealth: "Interaction Health",
 }
 
 export function RenewalPipeline({
@@ -408,11 +412,11 @@ export function RenewalPipeline({
                     min="0"
                     max="1"
                     step="0.05"
-                    value={weights[key]}
+                    value={weights[key] || 0}
                     onChange={(e) => setWeights({ ...weights, [key]: Number.parseFloat(e.target.value) })}
                     className="flex-1"
                   />
-                  <span className="text-sm font-mono w-10">{Math.round(weights[key] * 100)}%</span>
+                  <span className="text-sm font-mono w-10">{Math.round((weights[key] || 0) * 100)}%</span>
                 </div>
               </div>
             ))}

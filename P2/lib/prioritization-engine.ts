@@ -1,4 +1,4 @@
-import type { Policy, RenewalPipelineItem, PriorityFactors, CSVRenewalData, PriorityWeights } from "./types"
+import type { Policy, RenewalPipelineItem, PriorityFactors, CSVRenewalData, PriorityWeights, InteractionEvent, MarketConditions } from "./types"
 import { formatEther } from "./web3-utils"
 
 // Time windows for renewal pipeline
@@ -10,11 +10,14 @@ export const TIME_WINDOWS = [
 ] as const
 
 export const DEFAULT_WEIGHTS: PriorityWeights = {
-  premiumAtRisk: 0.3,
-  timeToExpiry: 0.25,
+  premiumAtRisk: 0.25,
+  timeToExpiry: 0.20,
   claimsHistory: 0.15,
   carrierResponsiveness: 0.1,
-  churnLikelihood: 0.2,
+  churnLikelihood: 0.15,
+  // New weights
+  marketConditions: 0.1,
+  interactionHealth: 0.05,
 }
 
 export const WEIGHT_LABELS: Record<keyof PriorityWeights, string> = {
@@ -23,6 +26,8 @@ export const WEIGHT_LABELS: Record<keyof PriorityWeights, string> = {
   claimsHistory: "Claims History",
   carrierResponsiveness: "Carrier Responsiveness",
   churnLikelihood: "Churn Likelihood",
+  marketConditions: "Market Conditions",
+  interactionHealth: "Interaction Health",
 }
 
 /**
@@ -100,6 +105,51 @@ function getUrgencyLevel(daysUntilExpiry: number): RenewalPipelineItem["urgencyL
 }
 
 /**
+   * Calculate Interaction Health Score (0-100)
+   * 100 = Silent/Ghosting (High Risk), 0 = Active/Good
+   */
+function calculateInteractionHealth(history?: InteractionEvent[]): number {
+  if (!history || history.length === 0) return 50 // Unknown
+
+  // Sort by date descending
+  const sorted = [...history].sort((a, b) => b.date.getTime() - a.date.getTime())
+  const lastContact = sorted[0]
+  const daysSinceContact = Math.floor((Date.now() - lastContact.date.getTime()) / (1000 * 60 * 60 * 24))
+
+  // 1. Silence Risk: If > 14 days, score increases
+  let score = 0
+  if (daysSinceContact > 30) score += 60
+  else if (daysSinceContact > 14) score += 30
+
+  // 2. Sentiment Risk
+  const negativeInteractions = history.filter(h => h.sentiment === "negative").length
+  score += (negativeInteractions * 10)
+
+  // 3. Ghosting check (Last outbound has no inbound reply)
+  if (lastContact.direction === "outbound" && daysSinceContact > 7) {
+    score += 20
+  }
+
+  return Math.min(100, Math.max(0, score))
+}
+
+/**
+ * Calculate Market Risk Score (0-100)
+ */
+function calculateMarketRisk(conditions?: MarketConditions): number {
+  if (!conditions) return 30 // Default
+
+  let score = 30
+  if (conditions.marketType === "hard") score += 40
+  if (conditions.sectorTrend === "volatile") score += 20
+  if (conditions.sectorTrend === "crisis") score += 40
+  if (conditions.carrierAppetite === "low") score += 30
+
+  // Normalize
+  return Math.min(100, score)
+}
+
+/**
  * Calculate priority factors for a policy
  */
 export function calculatePriorityFactors(
@@ -108,6 +158,9 @@ export function calculatePriorityFactors(
   csvData?: CSVRenewalData,
 ): PriorityFactors {
   const daysUntilExpiry = calculateDaysUntilExpiry(policy)
+
+  const marketConditionsVal = calculateMarketRisk(undefined) // TODO: Pass real conditions
+  const interactionHealthVal = calculateInteractionHealth(undefined) // TODO: Pass real history
 
   return {
     premiumAtRisk: Math.round(calculatePremiumScore(policy, allPolicies)),
@@ -120,6 +173,8 @@ export function calculatePriorityFactors(
       ? Math.round((5 - csvData.carrierRating) * 25) // Inverse: lower rating = higher concern
       : 50,
     churnLikelihood: csvData?.churnRisk ?? 40,
+    marketConditions: marketConditionsVal,
+    interactionHealth: interactionHealthVal,
   }
 }
 
@@ -142,6 +197,8 @@ export function calculatePriorityScore(factors: PriorityFactors, weights: Priori
     claimsHistory: weights.claimsHistory / weightsSum,
     carrierResponsiveness: weights.carrierResponsiveness / weightsSum,
     churnLikelihood: weights.churnLikelihood / weightsSum,
+    marketConditions: (weights.marketConditions || 0) / weightsSum,
+    interactionHealth: (weights.interactionHealth || 0) / weightsSum,
   }
 
   // Calculate weighted score - each factor is 0-100, normalized weights sum to 1.0
@@ -150,7 +207,9 @@ export function calculatePriorityScore(factors: PriorityFactors, weights: Priori
     factors.timeToExpiry * normalizedWeights.timeToExpiry +
     factors.claimsHistory * normalizedWeights.claimsHistory +
     factors.carrierResponsiveness * normalizedWeights.carrierResponsiveness +
-    factors.churnLikelihood * normalizedWeights.churnLikelihood
+    factors.churnLikelihood * normalizedWeights.churnLikelihood +
+    (factors.marketConditions || 0) * (normalizedWeights.marketConditions || 0) +
+    (factors.interactionHealth || 0) * (normalizedWeights.interactionHealth || 0)
 
   return Math.round(Math.max(0, Math.min(100, score)))
 }
@@ -184,6 +243,7 @@ export function buildRenewalPipeline(
       priorityScore,
       urgencyLevel: getUrgencyLevel(daysUntilExpiry),
       factors,
+      narrativeExplanation: generateRiskExplanation(factors, policy),
       source: csvData
         ? {
           type: "csv",
@@ -310,6 +370,33 @@ export function getScoreExplanation(factors: PriorityFactors): string[] {
   }
 
   return explanations.length > 0 ? explanations : ["Standard renewal"]
+}
+
+/**
+ * Generate Natural Language Risk Explanation
+ */
+export function generateRiskExplanation(factors: PriorityFactors, policy: Policy): string {
+  const reasons: string[] = []
+
+  // 1. Premium
+  if (factors.premiumAtRisk > 80) reasons.push("Top 5 Client by Premium")
+  else if (factors.premiumAtRisk > 60) reasons.push("High Value Account")
+
+  // 2. Interaction (The "Ghosting" check)
+  if ((factors.interactionHealth || 0) > 70) reasons.push("Client has been silent for >14 days")
+
+  // 3. Claims
+  if (factors.claimsHistory > 50) reasons.push("Multiple recent claims flagged")
+
+  // 4. Time
+  if (factors.timeToExpiry > 90) reasons.push("Expired or expiring within 48h")
+
+  // 5. Market
+  if ((factors.marketConditions || 0) > 60) reasons.push("Hard Market conditions for this sector")
+
+  if (reasons.length === 0) return "Routine renewal with no major risk flags."
+
+  return `Priority elevated due to: ${reasons.join(", ")}.`
 }
 
 export function generateCSVTemplate(): string {

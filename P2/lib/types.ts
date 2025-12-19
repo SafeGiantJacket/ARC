@@ -10,6 +10,7 @@ export interface Policy {
   notes: string
   status: number
   customer: string
+  broker?: string
 }
 
 export interface PolicyEvent {
@@ -96,6 +97,16 @@ export interface RenewalPipelineItem {
     overriddenBy?: string
     overriddenAt?: Date
   }
+  // New Orchestration Fields
+  interactionHistory?: InteractionEvent[]
+  marketConditions?: MarketConditions
+  narrativeExplanation?: string
+  campaignStatus?: {
+    isActive: boolean
+    step: number
+    nextActionDue: Date
+    strategy: "aggressive" | "standard" | "relationship"
+  }
 }
 
 export interface PriorityFactors {
@@ -104,6 +115,25 @@ export interface PriorityFactors {
   claimsHistory: number
   carrierResponsiveness: number
   churnLikelihood: number
+  // New "Contextual" factors
+  marketConditions?: number
+  interactionHealth?: number
+}
+
+// New Types for Phase 2 Intelligence
+export interface InteractionEvent {
+  id: string
+  type: "email" | "meeting" | "call"
+  date: Date
+  sentiment: "positive" | "negative" | "neutral"
+  direction: "inbound" | "outbound"
+  summary?: string
+}
+
+export interface MarketConditions {
+  marketType: "soft" | "hard" // Soft = easy, Hard = difficult/expensive
+  carrierAppetite: "high" | "medium" | "low"
+  sectorTrend: "stable" | "volatile" | "crisis"
 }
 
 export interface DataSource {
@@ -171,6 +201,8 @@ export interface PriorityWeights {
   claimsHistory: number
   carrierResponsiveness: number
   churnLikelihood: number
+  marketConditions?: number
+  interactionHealth?: number
 }
 
 export interface RenewalBrief {
@@ -196,6 +228,13 @@ export interface RenewalBrief {
     }[]
     marketTrends: string[]
     clientFeedback: string[]
+    scripting?: {
+      opening: string
+      objectionHandlers: { objection: string; response: string }[]
+      closing: string
+    }
+    counterArguments?: string[]
+    winWinScenarios?: string[]
   }
   generatedAt: Date
 }

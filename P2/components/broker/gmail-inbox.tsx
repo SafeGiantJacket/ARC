@@ -23,10 +23,11 @@ import type { GmailEmail, Policy } from "@/lib/types"
 interface GmailInboxProps {
     policies: Policy[]
     onSyncComplete?: (emails: GmailEmail[]) => void
+    initialEmails?: GmailEmail[]
 }
 
-export function GmailInbox({ policies, onSyncComplete }: GmailInboxProps) {
-    const [emails, setEmails] = useState<GmailEmail[]>([])
+export function GmailInbox({ policies, onSyncComplete, initialEmails = [] }: GmailInboxProps) {
+    const [emails, setEmails] = useState<GmailEmail[]>(initialEmails)
     const [filteredEmails, setFilteredEmails] = useState<GmailEmail[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")

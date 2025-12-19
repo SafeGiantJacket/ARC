@@ -25,7 +25,7 @@ interface EmailOutreachProps {
   policies: Policy[]
   placements: InsurancePlacement[]
   dataMode: DataMode
-  csvData: CSVRenewalData[]
+  csvData?: CSVRenewalData[]
   emailData?: EmailData[]
 }
 

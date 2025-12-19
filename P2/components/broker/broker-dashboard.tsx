@@ -1,8 +1,8 @@
+
 "use client"
 import { useState, useCallback, useEffect } from "react"
 import { getContractReadOnly } from "@/lib/web3-utils"
-import type { Policy, DataMode, GmailEmail } from "@/lib/types"
-import { Plus, RefreshCw, Calendar, TrendingUp, MessageSquare, Mail } from "lucide-react"
+import { Plus, RefreshCw, Calendar, TrendingUp, MessageSquare, Mail, Megaphone } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { BrokerCreatePolicy } from "./broker-create-policy"
 import { RenewalPipeline } from "./renewal-pipeline"
@@ -12,14 +12,34 @@ import { EmailOutreach } from "./email-outreach"
 import { GmailConnector } from "./gmail-connector"
 import { CalendarConnector } from "./calendar-connector"
 import { GmailInbox } from "./gmail-inbox"
+import { MeetingPrepWidget } from "./meeting-prep-widget"
+import { ConnectorGraph } from "./connector-graph"
+import { PipelineCampaignManager } from "./pipeline-campaign-manager"
+import type { Policy, DataMode, GmailEmail, EmailData } from "@/lib/types"
 
 interface BrokerDashboardProps {
   brokerAddress: string
   dataMode: DataMode
 }
 
+// Helper to map GmailEmail to generic EmailData
+const mapGmailToEmailData = (emails: GmailEmail[]): EmailData[] => {
+  return emails.map(e => ({
+    emailId: e.id,
+    subject: e.subject,
+    clientName: e.from, // fallback properties
+    receivedAt: e.date,
+    policyId: e.linkedPolicyHash || "unknown",
+    summary: e.snippet,
+    sentiment: e.sentiment || "neutral",
+    threadCount: 1, // simplified
+    sourceLink: e.gmailLink,
+    senderEmail: e.fromEmail
+  }))
+}
+
 export function BrokerDashboard({ brokerAddress, dataMode = "csv" }: BrokerDashboardProps) {
-  const [activeTab, setActiveTab] = useState<"pipeline" | "create" | "outreach" | "qa" | "calendar" | "mail">(
+  const [activeTab, setActiveTab] = useState<"pipeline" | "create" | "outreach" | "qa" | "calendar" | "mail" | "campaigns">(
     "pipeline",
   )
   const [policies, setPolicies] = useState<Policy[]>([])
@@ -29,8 +49,34 @@ export function BrokerDashboard({ brokerAddress, dataMode = "csv" }: BrokerDashb
 
   const handleGmailSync = (emails: GmailEmail[]) => {
     setGmailEmails(emails)
+    sessionStorage.setItem("p2_gmail_sync", JSON.stringify(emails))
     console.log("[Broker Dashboard] Synced emails:", emails.length)
   }
+
+  // Load from Session Storage on Mount
+  useEffect(() => {
+    const savedEmails = sessionStorage.getItem("p2_gmail_sync")
+    const savedEvents = sessionStorage.getItem("p2_calendar_sync")
+
+    if (savedEmails) {
+      try {
+        setGmailEmails(JSON.parse(savedEmails))
+      } catch (e) { console.error("Failed to load cached emails", e) }
+    }
+
+    if (savedEvents) {
+      try {
+        setCalendarEvents(JSON.parse(savedEvents))
+      } catch (e) { console.error("Failed to load cached events", e) }
+    }
+  }, [])
+
+  // Save Calendar Events when updated
+  useEffect(() => {
+    if (calendarEvents.length > 0) {
+      sessionStorage.setItem("p2_calendar_sync", JSON.stringify(calendarEvents))
+    }
+  }, [calendarEvents])
 
   const loadPolicies = useCallback(async () => {
     if (dataMode !== "blockchain") return
@@ -99,9 +145,18 @@ export function BrokerDashboard({ brokerAddress, dataMode = "csv" }: BrokerDashb
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:bg-secondary transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""} `} />
             Refresh
           </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <MeetingPrepWidget events={calendarEvents} />
+        </div>
+        <div className="md:col-span-1">
+          <ConnectorGraph emailCount={gmailEmails.length} calendarCount={calendarEvents.length} />
         </div>
       </div>
 
@@ -159,6 +214,15 @@ export function BrokerDashboard({ brokerAddress, dataMode = "csv" }: BrokerDashb
           <Mail className="h-4 w-4" />
           6. Mail
         </button>
+
+        <button
+          onClick={() => setActiveTab("campaigns")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === "campaigns" ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"
+            }`}
+        >
+          <Megaphone className="h-4 w-4" />
+          7. Campaigns
+        </button>
       </div>
 
       {/* Stats Overview */}
@@ -188,7 +252,15 @@ export function BrokerDashboard({ brokerAddress, dataMode = "csv" }: BrokerDashb
       )}
 
       {/* Tab Content */}
-      {activeTab === "pipeline" && <RenewalPipeline policies={policies} placements={[]} dataMode={dataMode} />}
+      {activeTab === "pipeline" && (
+        <RenewalPipeline
+          policies={policies}
+          placements={[]}
+          dataMode={dataMode}
+          emailData={mapGmailToEmailData(gmailEmails)}
+          calendarData={calendarEvents}
+        />
+      )}
 
       {activeTab === "create" && (
         <BrokerCreatePolicy
@@ -224,9 +296,20 @@ export function BrokerDashboard({ brokerAddress, dataMode = "csv" }: BrokerDashb
 
       {activeTab === "mail" && (
         <div className="space-y-6">
-          <GmailInbox policies={policies} onSyncComplete={handleGmailSync} />
+          <GmailInbox
+            policies={policies}
+            onSyncComplete={handleGmailSync}
+            initialEmails={gmailEmails} // Pass cached emails back
+          />
         </div>
       )}
+
+      {activeTab === "campaigns" && (
+        <div className="space-y-6">
+          <PipelineCampaignManager policies={policies} />
+        </div>
+      )}
+
     </div>
   )
 }

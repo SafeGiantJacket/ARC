@@ -94,53 +94,35 @@ export function BrokerPipelineDashboard({ brokerAddress, dataMode = "blockchain"
             </button>
             <button
               onClick={() => setActiveSection("pipeline")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                activeSection === "pipeline"
-                  ? "bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap bg-primary/20 text-primary"
             >
               <TrendingUp className="h-4 w-4" />
               Pipeline
             </button>
             <button
               onClick={() => setActiveSection("outreach")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                activeSection === "outreach"
-                  ? "bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
             >
               <Mail className="h-4 w-4" />
               Outreach
             </button>
             <button
               onClick={() => setActiveSection("qa")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                activeSection === "qa" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
             >
               <MessageSquare className="h-4 w-4" />
               Q&A
             </button>
             <button
               onClick={() => setActiveSection("calendar")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                activeSection === "calendar"
-                  ? "bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
             >
               <Calendar className="h-4 w-4" />
               Calendar & AI
             </button>
             <button
               onClick={() => setActiveSection("activity")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                activeSection === "activity"
-                  ? "bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap text-muted-foreground hover:text-foreground"
             >
               <Activity className="h-4 w-4" />
               Activity Log
@@ -171,85 +153,6 @@ export function BrokerPipelineDashboard({ brokerAddress, dataMode = "blockchain"
               </div>
             </div>
           )}
-
-          {activeSection === "create" && (
-            <div className="max-w-2xl mx-auto">
-              <BrokerCreatePolicy
-                brokerAddress={brokerAddress}
-                onPolicyCreated={() => {
-                  loadPolicies()
-                  loadEvents()
-                  setActiveSection("pipeline")
-                }}
-              />
-            </div>
-          )}
-
-          {activeSection === "outreach" && (
-            <div className="max-w-4xl mx-auto">
-              <EmailOutreach policies={policies} placements={placements} dataMode={dataMode} />
-            </div>
-          )}
-
-          {activeSection === "qa" && (
-            <div className="max-w-4xl mx-auto">
-              <QAChatbot
-                policies={policies}
-                placements={placements}
-                events={events}
-                dataMode={dataMode}
-                emailData={emailData}
-                calendarData={[]}
-              />
-            </div>
-          )}
-
-          {activeSection === "calendar" && (
-            <div className="max-w-6xl mx-auto">
-              <BrokerCalendarWithScheduler placements={placements} emailData={emailData} />
-            </div>
-          )}
-
-          {activeSection === "activity" && (
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Blockchain Activity Log</h2>
-                <button
-                  onClick={loadEvents}
-                  disabled={eventsLoading}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:bg-secondary transition-colors disabled:opacity-50"
-                >
-                  <RefreshCw className={`h-4 w-4 ${eventsLoading ? "animate-spin" : ""}`} />
-                  Refresh
-                </button>
-              </div>
-              {events.length === 0 ? (
-                <div className="text-center py-12 rounded-lg bg-card border border-border">
-                  <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No blockchain events yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {events.map((event, idx) => (
-                    <Card key={idx} className="p-4 border border-border">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="h-2 w-2 rounded-full bg-primary" />
-                          <div>
-                            <p className="font-medium capitalize">{event.type}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(event.timestamp * 1000).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs font-mono text-muted-foreground">{formatHash(event.hash)}</span>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     )
@@ -262,62 +165,56 @@ export function BrokerPipelineDashboard({ brokerAddress, dataMode = "blockchain"
         <div className="flex items-center gap-2 px-6 py-4 overflow-x-auto">
           <button
             onClick={() => setActiveSection("pipeline")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-              activeSection === "pipeline"
-                ? "bg-primary/20 text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${activeSection === "pipeline"
+              ? "bg-primary/20 text-primary"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <TrendingUp className="h-4 w-4" />
             Pipeline
           </button>
           <button
             onClick={() => setActiveSection("create")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-              activeSection === "create" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${activeSection === "create" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Plus className="h-4 w-4" />
             Create Policy
           </button>
           <button
             onClick={() => setActiveSection("outreach")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-              activeSection === "outreach"
-                ? "bg-primary/20 text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${activeSection === "outreach"
+              ? "bg-primary/20 text-primary"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Mail className="h-4 w-4" />
             Outreach
           </button>
           <button
             onClick={() => setActiveSection("qa")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-              activeSection === "qa" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${activeSection === "qa" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <MessageSquare className="h-4 w-4" />
             Q&A
           </button>
           <button
             onClick={() => setActiveSection("calendar")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-              activeSection === "calendar"
-                ? "bg-primary/20 text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${activeSection === "calendar"
+              ? "bg-primary/20 text-primary"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Calendar className="h-4 w-4" />
             Calendar & AI
           </button>
           <button
             onClick={() => setActiveSection("activity")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-              activeSection === "activity"
-                ? "bg-primary/20 text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${activeSection === "activity"
+              ? "bg-primary/20 text-primary"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Activity className="h-4 w-4" />
             Activity Log

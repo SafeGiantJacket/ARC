@@ -83,10 +83,11 @@ Rules:
 1. **Summary**: Must be a single, coherent paragraph. No bullet points. Mention the client name, policy type, major risks or opportunities, and overall sentiment.
 2. **Key Insights**: distinct points (point-wise information). Include at least one insight from Policy Data, one from Email/Communication (if available), and one regarding Carrier/Status.
 3. **Tone**: Professional, strategic, and action-oriented.
-4. **Data Usage**: Explicitly reference data points (e.g., 'Client expressed concern about pricing in email dated...').
-5. **No Hallucinations**: Use only the provided data.
-6. **Format**: Return ONLY valid, minified JSON. Do not include markdown formatting or explanations.
-7. **White Label**: Strictly do NOT mention 'Groq', 'Llama', 'AI', or the model name in the output.`
+4. **Scripting**: Provide actual conversational scripts for opening, handling objections, and closing.
+5. **Data Usage**: Explicitly reference data points.
+6. **No Hallucinations**: Use only the provided data.
+7. **White Label**: Strictly do NOT mention 'Groq', 'Llama', 'AI', or the model name in the output.
+8. **JSON ONLY**: Your output must be PURE JSON. Do not wrap it in markdown block (like \`\`\`json). Do not add any text before or after.`
 
     const prompt = `
 ${dataSection}${connectorSection}
@@ -114,7 +115,17 @@ Generate a JSON response with this exact structure:
       {"technique": "Tactic Name", "description": "How to apply it specifically for this client"}
     ],
     "marketTrends": ["Relevant market trend 1", "Relevant market trend 2"],
-    "clientFeedback": ["Inferred client sentiment 1", "Inferred client sentiment 2"]
+    "clientFeedback": ["Inferred client sentiment 1", "Inferred client sentiment 2"],
+    "scripting": {
+      "opening": "One sentence strong opening statement for the renewal call",
+      "objectionHandlers": [
+         {"objection": "Likely objection 1", "response": "Suggested response script"},
+         {"objection": "Likely objection 2", "response": "Suggested response script"}
+      ],
+      "closing": "One sentence closing statement to secure the renewal"
+    },
+    "counterArguments": ["Argument 1", "Argument 2"],
+    "winWinScenarios": ["Scenario 1", "Scenario 2"]
   }
 }
 `
@@ -125,38 +136,42 @@ Generate a JSON response with this exact structure:
       model: groq(GROQ_MODEL),
       system: systemPrompt,
       prompt: prompt,
-      temperature: 0.5, // Lower temperature for more consistent JSON
+      temperature: 0.5,
     })
 
     console.log("[v0] AI response received")
 
-    // Robust JSON cleaning
-    let jsonText = text.trim()
+    // Robust JSON extraction
+    let cleanText = text.trim();
 
-    // Remove markdown code blocks if present
-    jsonText = jsonText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/```\s*$/, '')
+    // 1. Remove wrapping code blocks if present
+    cleanText = cleanText.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
 
-    // Find the first '{' and last '}' to strip any preamble/postscript
-    const firstOpenBrace = jsonText.indexOf('{')
-    const lastCloseBrace = jsonText.lastIndexOf('}')
+    // 2. Find the outermost JSON object
+    const startIndex = cleanText.indexOf('{');
+    const endIndex = cleanText.lastIndexOf('}');
 
-    if (firstOpenBrace !== -1 && lastCloseBrace !== -1) {
-      jsonText = jsonText.substring(firstOpenBrace, lastCloseBrace + 1)
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+      console.error("Failed to find JSON object in response:", text);
+      throw new Error("AI did not return a valid JSON object");
     }
 
-    let briefData
+    const jsonString = cleanText.substring(startIndex, endIndex + 1);
+
+    let briefData;
     try {
-      briefData = JSON.parse(jsonText)
-    } catch (parseError) {
-      console.error("JSON Parse Error. Raw Text:", text)
-      // Fallback: Try to clean common JSON errors (newline in strings) if simple parse fails
-      // This is a basic attempt to salvage
+      briefData = JSON.parse(jsonString);
+    } catch (e) {
+      console.error("Direct JSON parse failed. Attempting repair...", e);
+      console.log("Broken JSON string:", jsonString);
+
+      // 3. Simple repair attempts for common LLM errors
       try {
-        // Escape potential newlines in string values that might break JSON
-        const sanitized = jsonText.replace(/\n/g, "\\n")
-        briefData = JSON.parse(sanitized)
-      } catch (retryError) {
-        throw new Error("Failed to parse AI response as JSON")
+        // Sometimes they use newlines in strings which is invalid JSON
+        const escapedNewlines = jsonString.replace(/\n/g, "\\n");
+        briefData = JSON.parse(escapedNewlines);
+      } catch (e2) {
+        throw new Error("Failed to parse AI response as JSON");
       }
     }
 

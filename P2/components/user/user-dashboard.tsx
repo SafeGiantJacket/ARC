@@ -13,6 +13,8 @@ import {
 import type { Policy } from "@/lib/types"
 import { FileText, Clock, RefreshCw, CheckCircle, AlertCircle, Search } from "lucide-react"
 import { AcceptPolicySection } from "./accept-policy-section"
+import { ClientProposalView } from "./client-proposal-view"
+import { Bell } from "lucide-react"
 
 interface UserDashboardProps {
   userAddress: string
@@ -25,7 +27,8 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
   const [searchHash, setSearchHash] = useState("")
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [renewDays, setRenewDays] = useState<Record<string, string>>({})
-  const [activeView, setActiveView] = useState<"overview" | "accept">("overview")
+  const [activeView, setActiveView] = useState<"overview" | "accept" | "proposals">("overview")
+  const [showProposal, setShowProposal] = useState(true) // Mock proposal state
 
   const loadPolicies = useCallback(async () => {
     setLoading(true)
@@ -33,7 +36,7 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
       const contract = await getContract()
       const readContract = await getContractReadOnly()
 
-      const hashes = await contract.getActivePolicies(userAddress)
+      const hashes = await contract.getActivePolicies.staticCall(userAddress) || []
 
       const policiesData: Policy[] = []
       for (const hash of hashes) {
@@ -145,25 +148,58 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
       <div className="flex items-center gap-2 border-b border-border pb-4">
         <button
           onClick={() => setActiveView("overview")}
-          className={`px-4 py-2 rounded-lg transition-colors ${
-            activeView === "overview"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-4 py-2 rounded-lg transition-colors ${activeView === "overview"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           My Policies
         </button>
         <button
           onClick={() => setActiveView("accept")}
-          className={`px-4 py-2 rounded-lg transition-colors ${
-            activeView === "accept"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-4 py-2 rounded-lg transition-colors ${activeView === "accept"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           Pending Signatures
         </button>
+        <button
+          onClick={() => setActiveView("proposals")}
+          className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${activeView === "proposals"
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
+        >
+          Proposals
+          {showProposal && <span className="bg-red-500 text-white text-[10px] px-1.5 rounded-full animate-pulse">1</span>}
+        </button>
       </div>
+
+      {activeView === "proposals" && showProposal ? (
+        <div className="flex flex-col items-center justify-center py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <ClientProposalView
+            proposalId="PROP-2025-001"
+            clientName="Acme Corp"
+            premium="12.5 ETH"
+            coverage="500 ETH"
+            policyType="Cyber Liability & Data Breach"
+            expiryDate="Dec 31, 2025"
+            onAccept={() => {
+              alert("Proposal Accepted! Redirecting to signature...")
+              setActiveView("accept")
+              setShowProposal(false)
+            }}
+            onDecline={() => alert("Feedback sent to broker.")}
+          />
+        </div>
+      ) : activeView === "proposals" ? (
+        <div className="text-center py-20 rounded-xl bg-card border border-border">
+          <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold mb-2">No New Proposals</h3>
+          <p className="text-muted-foreground">You are all caught up!</p>
+        </div>
+      ) : null}
 
       {activeView === "accept" && <AcceptPolicySection userAddress={userAddress} onPolicySigned={handlePolicySigned} />}
 
@@ -234,9 +270,8 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === f ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
+                  }`}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
@@ -271,13 +306,12 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
                         <p className="text-sm text-muted-foreground">{policy.policyType}</p>
                       </div>
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          policy.status === 0
-                            ? "bg-yellow-500/10 text-yellow-400"
-                            : policy.status === 1
-                              ? "bg-primary/10 text-primary"
-                              : "bg-destructive/10 text-destructive"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${policy.status === 0
+                          ? "bg-yellow-500/10 text-yellow-400"
+                          : policy.status === 1
+                            ? "bg-primary/10 text-primary"
+                            : "bg-destructive/10 text-destructive"
+                          }`}
                       >
                         {getPolicyStatusText(policy.status)}
                       </span>
@@ -297,14 +331,14 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Duration</p>
-                        <p className="font-semibold">{formatDuration(policy.duration)}</p>
+                        <p className="font-semibold">{Math.floor(Number(policy.duration) / (86400 * 86400))} days</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">
                           {policy.status === 0 ? "Start Date" : "Expires"}
                         </p>
                         <p className="font-semibold">
-                          {policy.status === 0 ? "After signing" : getExpiryDate(policy.startTime, policy.duration)}
+                          {policy.status === 0 ? "After signing" : new Date((Number(policy.startTime) + Number(policy.duration) / 86400) * 1000).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -316,7 +350,7 @@ export function UserDashboard({ userAddress }: UserDashboardProps) {
                       </div>
                     )}
 
-                    {policy.renewalCount > 0n && (
+                    {policy.renewalCount > BigInt(0) && (
                       <div className="pt-3 border-t border-border">
                         <p className="text-xs text-muted-foreground">
                           Renewed {policy.renewalCount.toString()} time(s)

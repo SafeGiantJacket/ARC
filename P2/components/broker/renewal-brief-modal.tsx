@@ -22,9 +22,17 @@ import {
   Calendar,
   TrendingUp,
   AlertCircle,
+  MessageSquare,
+  Send,
+  User,
+  Bot,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 
 import { ShareToTeamsModal } from "./share-to-teams-modal"
+import { NegotiationSimulator } from "./negotiation-simulator"
+import { RelationshipTimeline } from "./relationship-timeline"
 
 interface RenewalBriefModalProps {
   item: RenewalPipelineItem
@@ -41,6 +49,12 @@ export function RenewalBriefModal({ item, dataMode, emailData, calendarData, onC
   const [activeTab, setActiveTab] = useState<"brief" | "negotiation">("brief")
   const [copied, setCopied] = useState(false)
   const [isTeamsModalOpen, setIsTeamsModalOpen] = useState(false)
+
+  // Chat State
+  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([])
+  const [chatInput, setChatInput] = useState("")
+  const [chatLoading, setChatLoading] = useState(false)
+  const [expandedObjection, setExpandedObjection] = useState<number | null>(null)
 
   const getName = () => item.placement?.client || item.policy?.policyName || "Unknown"
   const getType = () => item.placement?.productLine || item.policy?.policyType || "General"
@@ -127,6 +141,42 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || !brief) return
+
+    const userMessage = chatInput.trim()
+    setChatMessages((prev) => [...prev, { role: "user", content: userMessage }])
+    setChatInput("")
+    setChatLoading(true)
+
+    try {
+      const response = await fetch("/api/negotiate-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...chatMessages, { role: "user", content: userMessage }],
+          context: {
+            policyName: getName(),
+            premium: getPremium(),
+            summary: brief.summary,
+            risks: brief.riskFactors,
+          },
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.error) throw new Error(data.error)
+
+      setChatMessages((prev) => [...prev, { role: "assistant", content: data.content }])
+    } catch (err) {
+      console.error("Chat error:", err)
+      setChatMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again." }])
+    } finally {
+      setChatLoading(false)
+    }
   }
 
   const getSourceIcon = (sourceType: string) => {
@@ -340,6 +390,11 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
                     <p className="text-foreground/90 leading-relaxed text-sm">{brief.summary}</p>
                   </div>
 
+                  {/* Relationship Pulse */}
+                  <div className="p-1">
+                    <RelationshipTimeline />
+                  </div>
+
                   {/* Key Insights */}
                   <div>
                     <h3 className="font-semibold mb-3 flex items-center gap-2">
@@ -421,16 +476,16 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
                   <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-indigo-400" />
-                        <span className="text-sm font-semibold uppercase tracking-wider text-indigo-400">Target Goal</span>
+                        <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                        <span className="text-sm font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Target Goal</span>
                       </div>
                       <div className="flex items-center gap-2 bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/30">
-                        <span className="text-xs font-semibold text-indigo-300">Win Probability</span>
-                        <span className="text-sm font-bold text-white">85%</span>
+                        <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">Win Probability</span>
+                        <span className="text-sm font-bold text-indigo-900 dark:text-white">85%</span>
                       </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">{brief.negotiationStrategy.goal}</h3>
-                    <p className="text-indigo-200 text-sm">Based on market analysis and client sentiment.</p>
+                    <h3 className="text-2xl font-bold text-foreground mb-2">{brief.negotiationStrategy.goal}</h3>
+                    <p className="text-muted-foreground text-sm">Based on market analysis and client sentiment.</p>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
@@ -492,18 +547,74 @@ ${brief.riskFactors.map((r) => `• ${r}`).join("\n")}
                     </div>
                   </div>
 
+                  {/* Scripting Section */}
+                  {brief.negotiationStrategy.scripting && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold flex items-center gap-2 text-foreground">
+                        <MessageSquare className="h-4 w-4 text-primary" />
+                        Conversation Scripts
+                      </h4>
+
+                      {/* Opening */}
+                      <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                        <p className="text-xs font-semibold text-primary mb-1 uppercase tracking-wider">Opening</p>
+                        <p className="text-foreground italic">"{brief.negotiationStrategy.scripting.opening}"</p>
+                      </div>
+
+                      {/* Objections */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-1">Objection Handlers</p>
+                        {brief.negotiationStrategy.scripting.objectionHandlers.map((handler, idx) => (
+                          <div key={idx} className="rounded-xl border border-border overflow-hidden bg-card/50">
+                            <button
+                              onClick={() => setExpandedObjection(expandedObjection === idx ? null : idx)}
+                              className="flex items-center justify-between w-full p-3 text-left hover:bg-secondary/50 transition-colors"
+                            >
+                              <span className="font-medium text-sm text-foreground">If they say: "{handler.objection}"</span>
+                              {expandedObjection === idx ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                            </button>
+                            {expandedObjection === idx && (
+                              <div className="p-3 pt-0 bg-secondary/20">
+                                <p className="text-sm text-foreground/90 italic border-l-2 border-primary pl-3 py-1">
+                                  "{handler.response}"
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Closing */}
+                      <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                        <p className="text-xs font-semibold text-emerald-500 mb-1 uppercase tracking-wider">Closing</p>
+                        <p className="text-foreground italic">"{brief.negotiationStrategy.scripting.closing}"</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* NEGOTIATION SIMULATOR */}
+                  <div className="mt-8 pt-6 border-t border-border">
+                    <NegotiationSimulator
+                      brief={brief}
+                      policyName={getName()}
+                      premium={getPremium()}
+                      emailData={emailData}
+                      calendarData={calendarData}
+                    />
+                  </div>
+
                   {/* Action Buttons */}
                   <div className="flex gap-4 pt-4">
                     <button
                       onClick={() => setIsTeamsModalOpen(true)}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
                     >
-                      <div className="flex items-center justify-center w-5 h-5 rounded bg-white text-indigo-600">
+                      <div className="flex items-center justify-center w-5 h-5 rounded bg-white text-emerald-600">
                         <span className="text-[10px] font-bold">T</span>
                       </div>
                       Share Strategy to Teams
                     </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40">
+                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold transition-all shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
                       <Calendar className="h-5 w-5" />
                       Schedule Strategy Review
                     </button>

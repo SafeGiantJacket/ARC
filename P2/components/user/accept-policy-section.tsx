@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getContract, getContractReadOnly, formatEther, formatHash } from "@/lib/web3-utils"
+import { getContract, getContractReadOnly, formatEther, formatHash, formatDuration } from "@/lib/web3-utils"
 import type { Policy } from "@/lib/types"
 import { CheckCircle, Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
@@ -21,18 +21,31 @@ export function AcceptPolicySection({ userAddress, onPolicySigned }: AcceptPolic
     setLoading(true)
     try {
       const contract = await getContractReadOnly()
-      const hashes = await contract.getAllPolicies()
+
+      // Filter for PolicyCreated events where the customer is the current user
+      const filter = contract.filters.PolicyCreated(null, userAddress)
+      const events = await contract.queryFilter(filter)
+
       const pendingPoliciesData: Policy[] = []
 
-      for (const hash of hashes) {
-        try {
-          const policy = await contract.getPolicy(hash)
-          // Show pending policies assigned to this user
-          if (policy.customer?.toLowerCase() === userAddress?.toLowerCase() && policy.status === 0) {
-            pendingPoliciesData.push(policy)
+      // Use a Set to avoid duplicates if multiple events exist for same hash (unlikely but safe)
+      const processedHashes = new Set<string>()
+
+      for (const event of events) {
+        if ('args' in event) {
+          const hash = event.args[0]
+          if (processedHashes.has(hash)) continue
+          processedHashes.add(hash)
+
+          try {
+            const policy = await contract.getPolicy(hash)
+            // Double check status is Pending (0)
+            if (policy.status === 0) {
+              pendingPoliciesData.push(policy)
+            }
+          } catch (e) {
+            console.log("[v0] Error fetching policy details:", hash)
           }
-        } catch (e) {
-          console.log("[v0] Error fetching policy")
         }
       }
 
@@ -136,7 +149,7 @@ export function AcceptPolicySection({ userAddress, onPolicySigned }: AcceptPolic
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Broker</p>
-                  <p className="text-xs font-mono">{formatHash(policy.broker)}</p>
+                  <p className="text-xs font-mono">{policy.broker ? formatHash(policy.broker) : "System"}</p>
                 </div>
               </div>
 
@@ -158,7 +171,7 @@ export function AcceptPolicySection({ userAddress, onPolicySigned }: AcceptPolic
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Broker Address:</span>
-                      <span className="font-mono">{policy.broker}</span>
+                      <span className="font-mono">{policy.broker || "System"}</span>
                     </div>
                   </div>
                 </div>
